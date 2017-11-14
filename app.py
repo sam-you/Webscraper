@@ -22,31 +22,35 @@ import mysql.connector as mariadb
     
 	
 
-
+# open the home website
 url='http://www.purplemath.com/modules/'
 req=urllib.request.Request(url);
 resp=urllib.request.urlopen(req).read();
+#get the intermediate Aljebra topics using regular expression 
 units=re.findall(r'Intermediate Algebra Topics(.*?)Advanced Algebra Topics',str(resp))
+# get all the topics hyper links
 li=re.findall(r'<a href="(.*?)">',str(units))
 results=[]
+# get the content from each topic 
 for x in li :
 	obj={}
 	y=re.findall(r'.*?htm',str(x))[0];
 	y='http://www.purplemath.com/modules/'+y;
-	# print(y)
 	obj['link']=y
 	r=urllib.request.Request(y);
 	res=urllib.request.urlopen(r).read();
+	# get the topic title 
 	tiitle=re.findall(r'<title>(.*?)</title>',str(res));
 	obj['title']=tiitle[0]
 	results.append(obj)
+#store the grapped data to the database 
 connection = mariadb.connect(user='root', database='scraper')
-# for result in results:
-# 	l=result['link'];
-# 	t=result['title'];
-# 	cursor = connection.cursor()
-# 	cursor.execute("INSERT INTO topics (topic,link) VALUES(%s,%s)",(t,l))
-# 	connection.commit()
+for result in results:
+	l=result['link'];
+	t=result['title'];
+	cursor = connection.cursor()
+	cursor.execute("INSERT INTO topics (topic,link) VALUES(%s,%s)",(t,l))
+	connection.commit()
 
 
 
@@ -55,6 +59,7 @@ connection = mariadb.connect(user='root', database='scraper')
     
 
 app = Flask(__name__)
+# login block
 @app.route("/login",methods=['POST','GET'])
 def login_page():
 	print('inside login')
@@ -73,7 +78,7 @@ def login_page():
 			return 'faild'
 	return redirect(url_for('main'))
 
-
+# sign up block 
 @app.route("/signup",methods=['POST','GET'])
 def signup_page():
 	error=None
@@ -92,7 +97,7 @@ def signup_page():
 	
 
 
-
+# main route 
 
 @app.route("/")
 def main():
